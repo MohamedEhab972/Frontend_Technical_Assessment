@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Management</title>
+    <link rel="stylesheet" href="./src/css/output.css" />
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+    <header
+      class="flex justify-between items-center p-4 bg-white dark:bg-gray-800 shadow-md"
+    >
+      <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+        Project Management
+      </h1>
+      <button
+        id="themeToggle"
+        class="p-2 rounded-md bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none"
+        onclick="toggleTheme()"
+        aria-label="Toggle Dark Mode"
+      >
+        <svg
+          id="themeIcon"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-gray-800 dark:text-gray-200"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 3v2m0 14v2m8.66-10h-2M5.34 12H3m12.07 7.07l-1.41-1.41M7.05 7.05l-1.41-1.41M16.95 7.05l-1.41-1.41M7.05 16.95l-1.41 1.41M12 8a4 4 0 100 8 4 4 0 000-8z"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <main class="container mx-auto py-8 space-y-8">
+      <section
+        class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 space-y-4"
+      >
+        <h2 class="text-lg font-semibold">Search Projects</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label for="search" class="block text-sm font-medium"
+              >Search by Name</label
+            >
+            <input
+              oninput="SearchByProjectName()"
+              type="text"
+              id="search"
+              class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              placeholder="Enter project name"
+            />
+          </div>
+          <div>
+            <label for="SearchByState" class="block text-sm font-medium"
+              >Filter by State</label
+            >
+            <select
+              id="SearchByState"
+              class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            >
+              <option value="All" selected>All States</option>
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Done">Done</option>
+            </select>
+          </div>
+          <div>
+            <label for="SearchByPriority" class="block text-sm font-medium"
+              >Filter by Priority</label
+            >
+            <select
+              id="SearchByPriority"
+              class="mt-1 block w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            >
+              <option value="All" selected>All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        <button
+          onclick="searchProjects()"
+          type="button"
+          class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg focus:ring focus:ring-blue-300"
+        >
+          Search
+        </button>
+      </section>
+
+      <div class="flex justify-end mt-4 gap-10 px-5">
+        <button
+          onclick="sortProjects('deadline')"
+          class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg focus:ring focus:ring-blue-300"
+        >
+          Sort by Deadline
+        </button>
+        <button
+          onclick="sortProjects('priority')"
+          class="bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg focus:ring focus:ring-yellow-300 ml-4"
+        >
+          Sort by Priority
+        </button>
+      </div>
+
+      <div
+        id="loadingContainer"
+        class="hidden z-50 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-500 text-center py-2 bg-blue-50 border border-blue-500 rounded-md shadow-lg p-4"
+      >
+        Loading...
+      </div>
+      <div
+        id="errorContainer"
+        class="hidden z-50 fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-red-500 bg-red-50 border border-red-500 rounded-md shadow-lg p-4 text-center"
+      ></div>
+      <div
+        id="successContainer"
+        class="hidden z-50 !text-black fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-50 border border-green-500 rounded-md shadow-lg p-4 text-center"
+      ></div>
+
+      <section class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h2 class="text-lg font-semibold mb-4">Projects List</h2>
+        <div class="relative overflow-x-auto">
+          <table
+            class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+          >
+            <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th class="px-6 py-3">Project Name</th>
+                <th class="px-6 py-3">State</th>
+                <th class="px-6 py-3">Priority</th>
+                <th class="px-6 py-3">Team Members</th>
+                <th class="px-6 py-3">Deadline</th>
+                <th class="px-6 py-3">Action</th>
+                <th class="px-6 py-3">Delete</th>
+              </tr>
+            </thead>
+            <tbody id="display"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mt-6">
+        <h2 class="text-lg font-semibold mb-4">Project Analytics</h2>
+        <div class="overflow-x-auto">
+          <table
+            class="w-full text-sm text-left text-gray-500 dark:text-gray-400"
+          >
+            <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3">Number of Projects</th>
+              </tr>
+            </thead>
+            <tbody id="analytics"></tbody>
+          </table>
+        </div>
+        <div class="mt-4">
+          <p
+            id="overdueProjectsCount"
+            class="text-sm text-gray-500 dark:text-gray-400"
+          >
+            Overdue Projects: 0
+          </p>
+        </div>
+      </section>
+
+      <section class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h2 class="text-lg font-semibold mb-4">Add New Project</h2>
+        <form class="space-y-4">
+          <div>
+            <label for="ProjectName" class="block text-sm font-medium"
+              >Project Name</label
+            >
+            <input
+              oninput="valedate(this)"
+              type="text"
+              id="ProjectName"
+              class="mt-1 !text-black block w-[100%] border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              placeholder="Enter project name"
+              required
+            />
+            <div class="text-sm text-red-500" id="ProjectNameError hidden">
+              The first caracter must be capital and you can add between 2 to 12
+              caracters
+            </div>
+          </div>
+
+          <div id="teamMembersSection">
+            <label class="block text-sm font-medium">Team Members</label>
+            <div class="mt-2 space-y-2">
+              <label class="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  value="Mohamed Ehab"
+                  class="form-checkbox"
+                />
+                <span class="ml-2">Mohamed Ehab</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  value="Mahmoud Gamal"
+                  class="form-checkbox"
+                />
+                <span class="ml-2">Mahmoud Gamal</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  value="AbdAllah Ghareb"
+                  class="form-checkbox"
+                />
+                <span class="ml-2">AbdAllah Ghareb</span>
+              </label>
+              <label class="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  value="Mariam Mohamed"
+                  class="form-checkbox"
+                />
+                <span class="ml-2">Mariam Mohamed</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label for="ProjectStatus" class="block text-sm font-medium"
+              >State</label
+            >
+            <select
+              id="ProjectStatus"
+              oninput="valedate(this)"
+              class="mt-1 !text-black block w-[100%] border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+            >
+              <option class="!text-black" value="" disabled selected>
+                Select State
+              </option>
+              <option class="!text-black" value="To Do">To Do</option>
+              <option class="!text-black" value="In Progress">
+                In Progress
+              </option>
+              <option class="!text-black" value="Done">Done</option>
+            </select>
+          </div>
+          <div>
+            <label for="ProjectPriority" class="block text-sm font-medium"
+              >Priority</label
+            >
+            <select
+              id="ProjectPriority"
+              oninput="valedate(this)"
+              class="mt-1 !text-black block w-[100%] border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              required
+            >
+              <option class="!text-black" value="" disabled selected>
+                Select Priority
+              </option>
+              <option class="!text-black" value="High">High</option>
+              <option class="!text-black" value="Medium">Medium</option>
+              <option class="!text-black" value="Low">Low</option>
+            </select>
+          </div>
+          <div>
+            <label for="ProjectDeadline" class="block text-sm font-medium"
+              >Deadline</label
+            >
+            <input
+              oninput="valedate(this)"
+              type="date"
+              id="ProjectDeadline"
+              class="mt-1 !text-black block w-[100%] border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600"
+              required
+            />
+          </div>
+          <button
+            onclick="addProject()"
+            id="AddButton"
+            type="button"
+            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg focus:ring focus:ring-green-300"
+          >
+            Add Project
+          </button>
+          <button
+            onclick="edit(ptr)"
+            id="UpdateButton"
+            type="button"
+            class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg focus:ring focus:ring-yellow-300 hidden"
+          >
+            Update Project
+          </button>
+        </form>
+      </section>
+    </main>
+    <script src="./src/js/main.js"></script>
+  </body>
+</html>
